@@ -13,12 +13,12 @@ import com.merttoptas.retrofittutorial.utils.Constants
 @Dao
 interface PostDao : BaseDao<PostEntity> {
     @Query("SELECT * FROM ${Constants.TABLE_POST_NAME}")
-    fun getAllPosts(): List<PostEntity>
+    suspend fun getAllPosts(): List<PostEntity>
 
     @Query("DELETE FROM ${Constants.TABLE_POST_NAME}")
-    fun deleteAll()
+    suspend fun deleteAll()
 
     @Query("SELECT * FROM ${Constants.TABLE_POST_NAME} WHERE postId = :postId")
-    fun getPostById(postId: String): PostEntity?
+    suspend fun getPostById(postId: String): PostEntity?
 
 }

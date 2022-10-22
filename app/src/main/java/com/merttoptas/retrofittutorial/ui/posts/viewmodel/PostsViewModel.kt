@@ -1,17 +1,19 @@
 package com.merttoptas.retrofittutorial.ui.posts.viewmodel
 
-import android.os.Handler
-import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.merttoptas.retrofittutorial.data.local.database.entity.PostEntity
 import com.merttoptas.retrofittutorial.data.model.DataState
 import com.merttoptas.retrofittutorial.data.model.Post
 import com.merttoptas.retrofittutorial.data.model.PostDTO
 import com.merttoptas.retrofittutorial.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -42,8 +44,9 @@ class PostsViewModel @Inject constructor(
     }
 
     private fun getPosts() {
-        _postLiveData.postValue(DataState.Loading())
-        Handler(Looper.getMainLooper()).postDelayed({
+        viewModelScope.launch(Dispatchers.IO) {
+            _postLiveData.postValue(DataState.Loading())
+            delay(500)
             postRepository.getPosts().enqueue(object : Callback<List<Post>> {
                 override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
                     if (response.isSuccessful) {
@@ -54,7 +57,7 @@ class PostsViewModel @Inject constructor(
                                     title = safePost.title,
                                     body = safePost.body,
                                     userId = safePost.userId,
-                                    isFavorite = isExists(safePost.id)
+                                    isFavorite = runBlocking { isExists(safePost.id) }
                                 )
                             }
                             _postLiveData.postValue(DataState.Success(updatePostData))
@@ -73,10 +76,10 @@ class PostsViewModel @Inject constructor(
                     _eventStateLiveData.postValue(PostViewEvent.ShowMessage(t.message.toString()))
                 }
             })
-        }, 500)
+        }
     }
 
-    fun onFavoritePost(post: PostDTO) {
+    suspend fun onFavoritePost(post: PostDTO) {
         post.id?.let { safePostId ->
             postRepository.getPostById(safePostId)?.let {
                 postRepository.deleteFavoritePost(
@@ -112,10 +115,10 @@ class PostsViewModel @Inject constructor(
         return postCacheData.value
     }
 
-    private fun isExists(postId: Int?): Boolean {
+    private suspend fun isExists(postId: Int?): Boolean {
         postId?.let {
             postRepository.getPostById(it)?.let {
-                return true
+               return true
             }
         }
         return false

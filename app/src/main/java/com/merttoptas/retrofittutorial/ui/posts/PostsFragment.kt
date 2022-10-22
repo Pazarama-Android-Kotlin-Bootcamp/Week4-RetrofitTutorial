@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.merttoptas.retrofittutorial.data.local.database.PostsDatabase
 import com.merttoptas.retrofittutorial.data.model.DataState
@@ -21,12 +22,18 @@ import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostViewEvent
 import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostViewModelFactory
 import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PostsFragment : Fragment(), OnPostClickListener {
     lateinit var loadingProgressBar: LoadingProgressBar
     private lateinit var binding: FragmentPostsBinding
     private val viewModel by viewModels<PostsViewModel>()
+    private val job = Job()
+    private val coroutineJob = CoroutineScope(Dispatchers.Main + job)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,7 +92,9 @@ class PostsFragment : Fragment(), OnPostClickListener {
     }
 
     override fun onPostClick(post: PostDTO) {
-        viewModel.onFavoritePost(post)
+        coroutineJob.launch {
+            viewModel.onFavoritePost(post)
+        }
     }
 }
 

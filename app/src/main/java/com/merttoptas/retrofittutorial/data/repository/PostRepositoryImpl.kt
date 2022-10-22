@@ -14,19 +14,19 @@ class PostRepositoryImpl constructor(
     private val apiService: ApiService,
     private val postsDatabase: PostsDatabase
 ) : PostRepository {
-    override fun getPosts(): Call<List<Post>> {
+    override suspend fun getPosts(): Call<List<Post>> {
         return apiService.getPosts()
     }
 
-    override fun getPostById(id: Int): PostEntity? {
+    override suspend fun getPostById(id: Int): PostEntity? {
         return postsDatabase.postDao().getPostById(id.toString())
     }
 
-    override fun insertFavoritePost(post: PostEntity) {
+    override suspend fun insertFavoritePost(post: PostEntity) {
         return postsDatabase.postDao().insert(post)
     }
 
-    override fun deleteFavoritePost(post: PostEntity) {
+    override suspend fun deleteFavoritePost(post: PostEntity) {
         return postsDatabase.postDao().delete(post)
     }
 }
