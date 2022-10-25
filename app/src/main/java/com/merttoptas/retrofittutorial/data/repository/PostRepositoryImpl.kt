@@ -4,6 +4,7 @@ import com.merttoptas.retrofittutorial.data.local.database.PostsDatabase
 import com.merttoptas.retrofittutorial.data.local.database.entity.PostEntity
 import com.merttoptas.retrofittutorial.data.remote.api.ApiService
 import com.merttoptas.retrofittutorial.data.model.Post
+import kotlinx.coroutines.flow.Flow
 import retrofit2.Call
 
 /**

@@ -25,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -51,34 +52,33 @@ class PostsFragment : Fragment(), OnPostClickListener {
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
 
-        viewModel.postLiveData.observe(viewLifecycleOwner) {
-            when (it) {
-                is DataState.Success -> {
-                    loadingProgressBar.hide()
-                    it.data?.let { safeData ->
+        lifecycleScope.launchWhenResumed {
+            launch {
+                viewModel.uiState.collect { uiState ->
+                    uiState.posts?.let {
                         binding.rvPostsList.adapter = PostsAdapter(this@PostsFragment).apply {
-                            submitList(safeData)
+                            submitList(it)
                         }
-                    } ?: run {
-                        Toast.makeText(requireContext(), "No data", Toast.LENGTH_SHORT).show()
+                        if (uiState.isLoading) loadingProgressBar.show() else loadingProgressBar.hide()
                     }
                 }
-                is DataState.Error -> {
-                    loadingProgressBar.hide()
-                    Snackbar.make(binding.root, it.message, Snackbar.LENGTH_LONG).show()
-                }
-                is DataState.Loading -> {
-                    loadingProgressBar.show()
+            }
+
+            launch {
+                viewModel.uiEvent.collect { uiEvent ->
+                    when (uiEvent) {
+                        is PostViewEvent.ShowMessage -> {
+                            loadingProgressBar.hide()
+                            Toast.makeText(requireContext(), uiEvent.message, Toast.LENGTH_SHORT).show()
+                        }
+                        is PostViewEvent.NavigateToDetail -> {
+                        }
+                        else -> {}
+                    }
                 }
             }
         }
 
-        viewModel.eventStateLiveData.observe(viewLifecycleOwner) {
-            when (it) {
-                is PostViewEvent.ShowMessage -> {}
-                is PostViewEvent.NavigateToDetail -> {}
-            }
-        }
 
         /*
         Way 2

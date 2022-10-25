@@ -5,6 +5,7 @@ import androidx.room.Query
 import com.merttoptas.retrofittutorial.data.local.database.base.BaseDao
 import com.merttoptas.retrofittutorial.data.local.database.entity.PostEntity
 import com.merttoptas.retrofittutorial.utils.Constants
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Created by merttoptas on 16.10.2022.

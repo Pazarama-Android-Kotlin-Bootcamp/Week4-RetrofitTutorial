@@ -2,6 +2,7 @@ package com.merttoptas.retrofittutorial.data.repository
 
 import com.merttoptas.retrofittutorial.data.local.database.entity.PostEntity
 import com.merttoptas.retrofittutorial.data.model.Post
+import kotlinx.coroutines.flow.Flow
 import retrofit2.Call
 
 /**
