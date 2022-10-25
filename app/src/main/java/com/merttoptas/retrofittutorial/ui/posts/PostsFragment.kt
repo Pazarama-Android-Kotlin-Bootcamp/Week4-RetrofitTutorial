@@ -1,6 +1,7 @@
 package com.merttoptas.retrofittutorial.ui.posts
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +22,7 @@ import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostViewEvent
 import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostViewModelFactory
 import com.merttoptas.retrofittutorial.ui.posts.viewmodel.PostsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.rxjava3.core.Observable
 
 @AndroidEntryPoint
 class PostsFragment : Fragment(), OnPostClickListener {
@@ -82,6 +84,15 @@ class PostsFragment : Fragment(), OnPostClickListener {
         }
 
          */
+
+        val stringObservable = Observable.just("Hello", "World", "RxJava", "Android", "Kotlin")
+        stringObservable.subscribe({ name ->
+            Log.d("Deneme1", name)
+        }, { error ->
+
+            Log.d("Deneme1", error.message.toString())
+        })
+
     }
 
     override fun onPostClick(post: PostDTO) {

@@ -12,6 +12,11 @@ import com.merttoptas.retrofittutorial.data.model.Post
 import com.merttoptas.retrofittutorial.data.model.PostDTO
 import com.merttoptas.retrofittutorial.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
+import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,12 +44,14 @@ class PostsViewModel @Inject constructor(
 
     init {
         getPosts()
+        getPostRxJavaCall()
     }
 
     private fun getPosts() {
         _postLiveData.postValue(DataState.Loading())
         Handler(Looper.getMainLooper()).postDelayed({
-            postRepository.getPosts().enqueue(object : Callback<List<Post>> {
+            /*
+               postRepository.getPosts().enqueue(object : Callback<List<Post>> {
                 override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
                     if (response.isSuccessful) {
                         response.body()?.let {
@@ -73,6 +80,8 @@ class PostsViewModel @Inject constructor(
                     _eventStateLiveData.postValue(PostViewEvent.ShowMessage(t.message.toString()))
                 }
             })
+             */
+
         }, 500)
     }
 
@@ -120,6 +129,67 @@ class PostsViewModel @Inject constructor(
         }
         return false
     }
+
+    //RxJava Api Call
+    private fun getPostRxJavaCall() {
+        // way 1
+        /*
+         postRepository.getPosts().subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                val updatePostData = it.map { safePost ->
+                    PostDTO(
+                        id = safePost.id,
+                        title = safePost.title,
+                        body = safePost.body,
+                        userId = safePost.userId,
+                        isFavorite = isExists(safePost.id)
+                    )
+                }
+                _postLiveData.postValue(DataState.Success(updatePostData))
+            }, {
+                _postLiveData.postValue(DataState.Error(it.message.toString()))
+            })
+         */
+
+
+        // way 2
+        postRepository.getPosts().subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(getPostRxList())
+
+
+    }
+
+    private fun getPostRxList() : Observer<List<Post>>{
+        return object : Observer<List<Post>> {
+            override fun onSubscribe(d: Disposable) {
+                _postLiveData.postValue(DataState.Loading())
+            }
+
+            override fun onNext(t: List<Post>) {
+                val updatePostData = t.map { safePost ->
+                    PostDTO(
+                        id = safePost.id,
+                        title = safePost.title,
+                        body = safePost.body,
+                        userId = safePost.userId,
+                        isFavorite = isExists(safePost.id)
+                    )
+                }
+                _postLiveData.postValue(DataState.Success(updatePostData))
+            }
+
+            override fun onError(e: Throwable) {
+                _postLiveData.postValue(DataState.Error(e.message.toString()))
+            }
+
+            override fun onComplete() {
+                //hide progress
+            }
+        }
+    }
+
 }
 
 sealed class PostViewEvent {
